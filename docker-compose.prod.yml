@@ -1,0 +1,55 @@
+version: '3.8'
+
+# Production overrides for docker-compose.yml
+# Use with: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  postgres:
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changethisinproduction}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Remove init script mount in production
+      # - ./database/init:/docker-entrypoint-initdb.d
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: production
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://your-domain.com}
+    volumes:
+      # Remove source code mount in production
+      # - ./backend:/app
+      - backend_uploads:/app/uploads
+    command: npm start
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_WS_URL: ${VITE_WS_URL}
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Remove source code mount in production
+      # - ./frontend:/app
+      - ./ssl:/etc/nginx/ssl:ro
+    # No command needed - nginx starts automatically
+
+volumes:
+  postgres_data:
+    driver: local
+  backend_uploads:
+    driver: local

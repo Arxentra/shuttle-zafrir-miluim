@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(move:*)",
+      "Bash(move public frontendpublic)",
+      "Bash(move index.html frontendindex.html)",
+      "Bash(powershell:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
