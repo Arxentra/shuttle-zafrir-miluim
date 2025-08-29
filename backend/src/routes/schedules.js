@@ -154,4 +154,70 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Get schedules organized by route and direction for frontend display
+router.get('/organized/display', async (req, res) => {
+  try {
+    const { date } = req.query;
+    
+    const query = `
+      SELECT 
+        ss.route_type,
+        ss.direction,
+        ss.departure_time,
+        ss.arrival_time,
+        s.name as shuttle_name,
+        s.capacity,
+        c.name as company_name,
+        COUNT(sr.id) as registered_count
+      FROM shuttle_schedules ss
+      JOIN shuttles s ON ss.shuttle_id = s.id
+      LEFT JOIN companies c ON s.company_id = c.id
+      LEFT JOIN shuttle_registrations sr ON ss.id = sr.schedule_id
+        AND sr.registration_date = COALESCE($1, CURRENT_DATE)
+        AND sr.status = 'confirmed'
+      WHERE ss.is_active = true
+      GROUP BY ss.id, ss.route_type, ss.direction, ss.departure_time, ss.arrival_time, s.name, s.capacity, c.name
+      ORDER BY ss.route_type, ss.direction, ss.departure_time
+    `;
+    
+    const result = await pool.query(query, [date || null]);
+    
+    // Organize data by route type and direction
+    const organized = {
+      savidor_to_tzafrir: {
+        outbound: [],
+        return: []
+      },
+      kiryat_aryeh_to_tzafrir: {
+        outbound: [],
+        return: []
+      }
+    };
+    
+    result.rows.forEach(row => {
+      // Format time for display (remove seconds)
+      const displayTime = row.departure_time.substring(0, 5);
+      
+      const scheduleEntry = {
+        time: displayTime,
+        fullTime: row.departure_time,
+        arrivalTime: row.arrival_time ? row.arrival_time.substring(0, 5) : null,
+        shuttleName: row.shuttle_name,
+        capacity: row.capacity,
+        companyName: row.company_name,
+        registeredCount: parseInt(row.registered_count) || 0
+      };
+      
+      if (organized[row.route_type] && organized[row.route_type][row.direction]) {
+        organized[row.route_type][row.direction].push(scheduleEntry);
+      }
+    });
+    
+    res.json(organized);
+  } catch (error) {
+    console.error('Error fetching organized schedules:', error);
+    res.status(500).json({ error: 'Failed to fetch organized schedules' });
+  }
+});
+
 export default router;

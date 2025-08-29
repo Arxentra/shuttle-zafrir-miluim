@@ -11,13 +11,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useShuttleData } from '@/hooks/useShuttleData';
 import { useGlobalSync } from '@/hooks/useGlobalSync';
 import { TimeSlot } from '@/components/TimeSlot';
-import { dataService } from '@/services/dataService';
+import { dataService, type OrganizedSchedules } from '@/services/dataService';
 
 export default function DynamicShuttleBrochure() {
   const { shuttleData, loading, error, getCompanyByTime, refetch } = useShuttleData();
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('sabidor');
   const [activeDirection, setActiveDirection] = useState<'outbound' | 'return'>('outbound');
+  const [realSchedules, setRealSchedules] = useState<OrganizedSchedules | null>(null);
+  const [scheduleLoading, setScheduleLoading] = useState(true);
 
   // Enhanced global real-time synchronization with immediate updates
   const { triggerGlobalRefresh } = useGlobalSync({
@@ -39,11 +41,26 @@ export default function DynamicShuttleBrochure() {
     }
   });
 
+  // Fetch real schedule data from database
+  const fetchRealSchedules = async () => {
+    try {
+      setScheduleLoading(true);
+      const schedules = await dataService.schedules.getOrganizedForDisplay();
+      setRealSchedules(schedules);
+      console.log('✅ Loaded real schedules from database:', schedules);
+    } catch (err) {
+      console.error('❌ Error fetching real schedules:', err);
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
   // Enhanced real-time listener with better error handling
   useEffect(() => {
     const handleGlobalRefresh = (event?: CustomEvent) => {
       console.log('🌍 Global refresh event received on landing page', event?.detail);
       refetch();
+      fetchRealSchedules(); // Also refresh real schedules
     };
 
     // Listen for both standard and custom refresh events
@@ -53,6 +70,7 @@ export default function DynamicShuttleBrochure() {
     const pollInterval = setInterval(() => {
       console.log('🔄 Polling fallback - refreshing data');
       refetch();
+      fetchRealSchedules();
     }, 30000);
 
     return () => {
@@ -60,6 +78,11 @@ export default function DynamicShuttleBrochure() {
       clearInterval(pollInterval);
     };
   }, [refetch]);
+
+  // Load real schedules on component mount
+  useEffect(() => {
+    fetchRealSchedules();
+  }, []);
 
   const getRouteHoverContent = (shuttleNumber: number) => {
     switch(shuttleNumber) {
@@ -121,12 +144,12 @@ export default function DynamicShuttleBrochure() {
     return colors[index % colors.length];
   };
 
-  if (loading) {
+  if (loading || scheduleLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <p className="text-emerald-700">טוען נתוני שאטלים...</p>
+          <p className="text-emerald-700">טוען לוחות זמנים...</p>
         </div>
       </div>
     );
@@ -143,62 +166,54 @@ export default function DynamicShuttleBrochure() {
     );
   }
 
-  // Generate dynamic schedules from database instead of static data
-  const generateScheduleFromDatabase = () => {
-    if (!shuttleData || shuttleData.length === 0) {
+  // Generate schedules from real database data
+  const generateScheduleFromRealData = () => {
+    if (!realSchedules) {
       return { sabidorSchedule: { outbound: [], return: [] }, kiryatArieSchedule: { outbound: [], return: [] } };
     }
 
-    const sabidorSchedule = { outbound: [], return: [] };
-    const kiryatArieSchedule = { outbound: [], return: [] };
-
-    shuttleData.forEach(({ shuttle, company, schedules }) => {
-      schedules.forEach(schedule => {
-        const item = {
-          pickup: schedule.route_description,
-          time: schedule.time_slot,
-          shuttle: shuttle.shuttle_number,
-          company: company?.name || 'Unknown',
-          isBreak: schedule.is_break
-        };
-
-        // Determine which schedule and direction based on route description
-        const routeDesc = schedule.route_description.toLowerCase();
-        const isKiryatArie = routeDesc.includes('קרית אריה') || routeDesc.includes('קריה');
-        const isReturn = routeDesc.includes('חזור') || routeDesc.includes('מצפריר');
-
-        if (isKiryatArie) {
-          if (isReturn) {
-            kiryatArieSchedule.return.push(item);
-          } else {
-            kiryatArieSchedule.outbound.push(item);
-          }
-        } else {
-          if (isReturn) {
-            sabidorSchedule.return.push(item);
-          } else {
-            sabidorSchedule.outbound.push(item);
-          }
-        }
-      });
-    });
-
-    // Sort by time
-    const sortByTime = (a, b) => {
-      const timeA = a.time.split(':').map(t => parseInt(t.split('-')[0]));
-      const timeB = b.time.split(':').map(t => parseInt(t.split('-')[0]));
-      return timeA[0] * 60 + (timeA[1] || 0) - timeB[0] * 60 - (timeB[1] || 0);
+    const sabidorSchedule = { 
+      outbound: realSchedules.savidor_to_tzafrir.outbound.map(entry => ({
+        pickup: "יציאה מסבידור",
+        time: entry.time,
+        shuttle: 1,
+        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+        isBreak: false,
+        registeredCount: entry.registeredCount
+      })),
+      return: realSchedules.savidor_to_tzafrir.return.map(entry => ({
+        pickup: "יציאה מצפריר",
+        time: entry.time,
+        shuttle: 2,
+        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+        isBreak: false,
+        registeredCount: entry.registeredCount
+      }))
     };
 
-    sabidorSchedule.outbound.sort(sortByTime);
-    sabidorSchedule.return.sort(sortByTime);
-    kiryatArieSchedule.outbound.sort(sortByTime);
-    kiryatArieSchedule.return.sort(sortByTime);
+    const kiryatArieSchedule = {
+      outbound: realSchedules.kiryat_aryeh_to_tzafrir.outbound.map(entry => ({
+        pickup: "יציאה מקרית אריה",
+        time: entry.time,
+        shuttle: 3,
+        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+        isBreak: false,
+        registeredCount: entry.registeredCount
+      })),
+      return: realSchedules.kiryat_aryeh_to_tzafrir.return.map(entry => ({
+        pickup: "יציאה מצפריר", 
+        time: entry.time,
+        shuttle: 4,
+        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+        isBreak: false,
+        registeredCount: entry.registeredCount
+      }))
+    };
 
     return { sabidorSchedule, kiryatArieSchedule };
   };
 
-  const { sabidorSchedule, kiryatArieSchedule } = generateScheduleFromDatabase();
+  const { sabidorSchedule, kiryatArieSchedule } = generateScheduleFromRealData();
 
   // Get unique companies for the bottom section by direction
   const getUniqueCompaniesByDirection = (schedule: typeof sabidorSchedule, direction: 'outbound' | 'return') => {

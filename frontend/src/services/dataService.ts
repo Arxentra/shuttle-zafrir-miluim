@@ -44,6 +44,27 @@ export interface ShuttleSchedule {
   updated_at: string;
 }
 
+export interface ScheduleEntry {
+  time: string;
+  fullTime: string;
+  arrivalTime?: string;
+  shuttleName: string;
+  capacity: number;
+  companyName: string;
+  registeredCount: number;
+}
+
+export interface OrganizedSchedules {
+  savidor_to_tzafrir: {
+    outbound: ScheduleEntry[];
+    return: ScheduleEntry[];
+  };
+  kiryat_aryeh_to_tzafrir: {
+    outbound: ScheduleEntry[];
+    return: ScheduleEntry[];
+  };
+}
+
 export interface ShuttleRegistration {
   id: string;
   schedule_id?: string;
@@ -141,6 +162,11 @@ export const dataService = {
 
     async bulkCreate(schedules: Partial<ShuttleSchedule>[]): Promise<ShuttleSchedule[]> {
       return api.post('/api/schedules/bulk', { schedules });
+    },
+
+    async getOrganizedForDisplay(date?: string): Promise<OrganizedSchedules> {
+      const queryParams = date ? `?date=${date}` : '';
+      return api.get(`/api/schedules/organized/display${queryParams}`);
     }
   },
 

@@ -172,10 +172,42 @@ class WebSocketService {
   get isConnected(): boolean {
     return this.ws?.readyState === WebSocket.OPEN;
   }
+
+  // Convenience methods for direct event handling (for compatibility with existing code)
+  on(event: string, callback: EventCallback) {
+    const channelName = 'global'; // Use a global channel for direct events
+    if (!this.channels[channelName]) {
+      this.channels[channelName] = {};
+    }
+    if (!this.channels[channelName][event]) {
+      this.channels[channelName][event] = [];
+    }
+    this.channels[channelName][event].push(callback);
+    this.subscribe(channelName, event);
+  }
+
+  off(event: string, callback?: EventCallback) {
+    const channelName = 'global';
+    if (this.channels[channelName] && this.channels[channelName][event]) {
+      if (callback) {
+        // Remove specific callback
+        const index = this.channels[channelName][event].indexOf(callback);
+        if (index > -1) {
+          this.channels[channelName][event].splice(index, 1);
+        }
+      } else {
+        // Remove all callbacks for this event
+        this.channels[channelName][event] = [];
+      }
+    }
+  }
 }
 
 // Create singleton instance
 export const websocketService = new WebSocketService();
+
+// Also export as wsService for compatibility
+export const wsService = websocketService;
 
 // Auto-connect when service is imported
 websocketService.connect().catch(error => {

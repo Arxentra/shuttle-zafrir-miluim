@@ -20,6 +20,7 @@ export interface AuthResponse {
 
 class AuthService {
   private authStateCallbacks: Array<(event: string, session: Session | null) => void> = [];
+  
   /**
    * Sign in with email and password
    */
@@ -35,7 +36,7 @@ class AuthService {
     }
     
     return response;
-  },
+  }
 
   /**
    * Sign up new user (admin registration)
@@ -56,7 +57,7 @@ class AuthService {
     }
     
     return response;
-  },
+  }
 
   /**
    * Sign out current user
@@ -73,14 +74,14 @@ class AuthService {
       // Trigger auth state change
       this.triggerAuthStateChange('SIGNED_OUT', null);
     }
-  },
+  }
 
   /**
    * Reset password for email
    */
   async resetPasswordForEmail(email: string): Promise<{ message: string; tempPassword?: string }> {
     return api.post('/api/auth/reset-password', { email });
-  },
+  }
 
   /**
    * Get current session
@@ -106,14 +107,14 @@ class AuthService {
       localStorage.removeItem('token');
       return { data: { session: { user: null } } };
     }
-  },
+  }
 
   /**
    * Verify current token
    */
   async verifyToken(): Promise<{ user: User }> {
     return api.get('/api/auth/verify');
-  },
+  }
 
   /**
    * Refresh current token
@@ -127,21 +128,21 @@ class AuthService {
     }
     
     return response;
-  },
+  }
 
   /**
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
     return !!localStorage.getItem('token');
-  },
+  }
 
   /**
    * Get stored token
    */
   getToken(): string | null {
     return localStorage.getItem('token');
-  },
+  }
 
   /**
    * Auth state change listener (enhanced for proper state management)
@@ -168,7 +169,7 @@ class AuthService {
         }
       }
     };
-  },
+  }
 
   /**
    * Trigger auth state change callbacks
