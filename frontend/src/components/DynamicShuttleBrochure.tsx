@@ -173,41 +173,89 @@ export default function DynamicShuttleBrochure() {
     }
 
     const sabidorSchedule = { 
-      outbound: realSchedules.savidor_to_tzafrir.outbound.map(entry => ({
-        pickup: "יציאה מסבידור",
-        time: entry.time,
-        shuttle: 1,
-        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
-        isBreak: false,
-        registeredCount: entry.registeredCount
-      })),
-      return: realSchedules.savidor_to_tzafrir.return.map(entry => ({
-        pickup: "יציאה מצפריר",
-        time: entry.time,
-        shuttle: 2,
-        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
-        isBreak: false,
-        registeredCount: entry.registeredCount
-      }))
+      outbound: [
+        // Departures from Sabidor
+        ...realSchedules.savidor_to_tzafrir.outbound.map(entry => ({
+          pickup: "יציאה מסבידור",
+          time: entry.time,
+          shuttle: 1,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        })),
+        // Arrivals at Tzafrir (calculated from departure + ~1 hour)
+        ...realSchedules.savidor_to_tzafrir.outbound.map(entry => ({
+          pickup: "הגעה לצפריר", 
+          time: entry.arrivalTime || entry.time, // Use arrival time if available
+          shuttle: 1,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        }))
+      ],
+      return: [
+        // Departures from Tzafrir
+        ...realSchedules.savidor_to_tzafrir.return.map(entry => ({
+          pickup: "יציאה מצפריר",
+          time: entry.time,
+          shuttle: 2,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        })),
+        // Arrivals at Sabidor (calculated from departure + ~1 hour)
+        ...realSchedules.savidor_to_tzafrir.return.map(entry => ({
+          pickup: "הגעה לסבידור",
+          time: entry.arrivalTime || entry.time, // Use arrival time if available
+          shuttle: 2,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        }))
+      ]
     };
 
     const kiryatArieSchedule = {
-      outbound: realSchedules.kiryat_aryeh_to_tzafrir.outbound.map(entry => ({
-        pickup: "יציאה מקרית אריה",
-        time: entry.time,
-        shuttle: 3,
-        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
-        isBreak: false,
-        registeredCount: entry.registeredCount
-      })),
-      return: realSchedules.kiryat_aryeh_to_tzafrir.return.map(entry => ({
-        pickup: "יציאה מצפריר", 
-        time: entry.time,
-        shuttle: 4,
-        company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
-        isBreak: false,
-        registeredCount: entry.registeredCount
-      }))
+      outbound: [
+        // Departures from Kiryat Aryeh
+        ...realSchedules.kiryat_aryeh_to_tzafrir.outbound.map(entry => ({
+          pickup: "יציאה מקרית אריה",
+          time: entry.time,
+          shuttle: 3,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        })),
+        // Arrivals at Tzafrir
+        ...realSchedules.kiryat_aryeh_to_tzafrir.outbound.map(entry => ({
+          pickup: "הגעה לצפריר",
+          time: entry.arrivalTime || entry.time,
+          shuttle: 3,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        }))
+      ],
+      return: [
+        // Departures from Tzafrir
+        ...realSchedules.kiryat_aryeh_to_tzafrir.return.map(entry => ({
+          pickup: "יציאה מצפריר", 
+          time: entry.time,
+          shuttle: 4,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        })),
+        // Arrivals at Kiryat Aryeh
+        ...realSchedules.kiryat_aryeh_to_tzafrir.return.map(entry => ({
+          pickup: "הגעה לקרית אריה",
+          time: entry.arrivalTime || entry.time,
+          shuttle: 4,
+          company: entry.companyName || entry.shuttleName || 'צפריר שאטלים',
+          isBreak: false,
+          registeredCount: entry.registeredCount
+        }))
+      ]
     };
 
     return { sabidorSchedule, kiryatArieSchedule };

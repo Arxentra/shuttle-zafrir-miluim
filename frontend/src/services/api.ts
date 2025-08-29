@@ -11,10 +11,17 @@ class ApiClient {
 
   private getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('token');
-    return {
+    const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
+
+    // Add ngrok bypass header if using ngrok
+    if (this.baseURL.includes('ngrok-free.app')) {
+      headers['ngrok-skip-browser-warning'] = 'true';
+    }
+
+    return headers;
   }
 
   private async handleResponse(response: Response) {
@@ -61,12 +68,19 @@ class ApiClient {
 
   async uploadFile(endpoint: string, formData: FormData) {
     const token = localStorage.getItem('token');
+    const headers: HeadersInit = {
+      ...(token && { 'Authorization': `Bearer ${token}` })
+      // Don't set Content-Type for FormData - let browser set it with boundary
+    };
+
+    // Add ngrok bypass header if using ngrok
+    if (this.baseURL.includes('ngrok-free.app')) {
+      headers['ngrok-skip-browser-warning'] = 'true';
+    }
+
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'POST',
-      headers: {
-        ...(token && { 'Authorization': `Bearer ${token}` })
-        // Don't set Content-Type for FormData - let browser set it with boundary
-      },
+      headers,
       body: formData
     });
     return this.handleResponse(response);
