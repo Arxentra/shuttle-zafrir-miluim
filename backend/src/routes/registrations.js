@@ -57,13 +57,48 @@ router.get('/', async (req, res) => {
 // Create new registration
 router.post('/', async (req, res) => {
   try {
-    const {
+    let {
       schedule_id,
       passenger_name,
       passenger_phone,
       passenger_email,
-      registration_date
+      registration_date,
+      // Frontend format fields
+      time_slot,
+      route_type,
+      direction,
+      user_name,
+      phone_number
     } = req.body;
+    
+    // Handle frontend format - find schedule_id if not provided
+    if (!schedule_id && time_slot && route_type && direction) {
+      const scheduleQuery = `
+        SELECT id FROM shuttle_schedules 
+        WHERE departure_time = $1 AND route_type = $2 AND direction = $3
+        LIMIT 1
+      `;
+      const scheduleResult = await pool.query(scheduleQuery, [time_slot + ':00', route_type, direction]);
+      
+      if (scheduleResult.rows.length === 0) {
+        return res.status(400).json({ error: 'Schedule not found for the specified time and route' });
+      }
+      
+      schedule_id = scheduleResult.rows[0].id;
+    }
+    
+    // Map frontend fields to backend fields
+    if (!passenger_name && user_name) {
+      passenger_name = user_name;
+    }
+    if (!passenger_phone && phone_number) {
+      passenger_phone = phone_number;
+    }
+    
+    // Default phone if none provided
+    if (!passenger_phone) {
+      passenger_phone = '0000000000';
+    }
     
     // Check if registration already exists
     const existing = await pool.query(

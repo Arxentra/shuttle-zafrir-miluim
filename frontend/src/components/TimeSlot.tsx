@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useJerusalemTime } from '@/hooks/useJerusalemTime';
 import { useRegistrationCount } from '@/hooks/useRegistrationCount';
-import { RegistrationModal } from './RegistrationModal';
+import RegistrationModal from './RegistrationModal';
 import { Users } from 'lucide-react';
 import { wsService } from '@/services/websocketService';
 

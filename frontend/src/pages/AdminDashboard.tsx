@@ -83,34 +83,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadData();
-
-    // Set up WebSocket listeners for real-time updates
-    wsService.on('company-updated', () => {
-      loadData();
-      triggerGlobalRefresh();
-    });
-
-    wsService.on('shuttle-updated', () => {
-      loadData();
-      triggerGlobalRefresh();
-    });
-
-    wsService.on('schedule-updated', () => {
-      loadData();
-      triggerGlobalRefresh();
-    });
-
-    wsService.on('registration-updated', () => {
-      triggerGlobalRefresh();
-    });
-
-    return () => {
-      wsService.off('company-updated');
-      wsService.off('shuttle-updated');
-      wsService.off('schedule-updated');
-      wsService.off('registration-updated');
-    };
-  }, [triggerGlobalRefresh]);
+    // WebSocket listeners are already set up in useGlobalSync hook
+    // No need to duplicate them here
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();

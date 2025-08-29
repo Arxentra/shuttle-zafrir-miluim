@@ -16,56 +16,78 @@ export function useGlobalSync(options: UseGlobalSyncOptions = {}) {
     onScheduleChange
   } = options;
 
+  // Use refs to maintain stable references
+  const callbacksRef = useRef({
+    onShuttleRegistrationChange,
+    onCompanyChange,
+    onShuttleChange,
+    onScheduleChange
+  });
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    callbacksRef.current = {
+      onShuttleRegistrationChange,
+      onCompanyChange,
+      onShuttleChange,
+      onScheduleChange
+    };
+  }, [onShuttleRegistrationChange, onCompanyChange, onShuttleChange, onScheduleChange]);
 
   const handleGlobalUpdate = useCallback(() => {
     console.log('🔄 Global sync triggered - updating all callbacks');
-    onShuttleRegistrationChange?.();
-    onCompanyChange?.();
-    onShuttleChange?.();
-    onScheduleChange?.();
+    callbacksRef.current.onShuttleRegistrationChange?.();
+    callbacksRef.current.onCompanyChange?.();
+    callbacksRef.current.onShuttleChange?.();
+    callbacksRef.current.onScheduleChange?.();
     
     // Dispatch custom event for components listening to global refresh
     window.dispatchEvent(new CustomEvent('global-data-refresh', { 
       detail: { timestamp: Date.now() } 
     }));
-  }, [onShuttleRegistrationChange, onCompanyChange, onShuttleChange, onScheduleChange]);
+  }, []);
 
   useEffect(() => {
     console.log('🔗 Setting up WebSocket real-time sync');
     
     // Set up WebSocket listeners for all table changes
-    wsService.on('schedule-updated', () => {
+    const scheduleHandler = () => {
       console.log('📅 Schedule changed');
-      onScheduleChange?.();
+      callbacksRef.current.onScheduleChange?.();
       setTimeout(handleGlobalUpdate, 100);
-    });
+    };
 
-    wsService.on('company-updated', () => {
+    const companyHandler = () => {
       console.log('🏢 Company changed');
-      onCompanyChange?.();
+      callbacksRef.current.onCompanyChange?.();
       setTimeout(handleGlobalUpdate, 100);
-    });
+    };
 
-    wsService.on('shuttle-updated', () => {
+    const shuttleHandler = () => {
       console.log('🚌 Shuttle changed');
-      onShuttleChange?.();
+      callbacksRef.current.onShuttleChange?.();
       setTimeout(handleGlobalUpdate, 100);
-    });
+    };
 
-    wsService.on('registration-updated', () => {
+    const registrationHandler = () => {
       console.log('📝 Registration changed');
-      onShuttleRegistrationChange?.();
+      callbacksRef.current.onShuttleRegistrationChange?.();
       setTimeout(handleGlobalUpdate, 100);
-    });
+    };
+
+    wsService.on('schedule-updated', scheduleHandler);
+    wsService.on('company-updated', companyHandler);
+    wsService.on('shuttle-updated', shuttleHandler);
+    wsService.on('registration-updated', registrationHandler);
 
     return () => {
       console.log('🔌 Cleaning up WebSocket listeners');
-      wsService.off('schedule-updated');
-      wsService.off('company-updated');
-      wsService.off('shuttle-updated');
-      wsService.off('registration-updated');
+      wsService.off('schedule-updated', scheduleHandler);
+      wsService.off('company-updated', companyHandler);
+      wsService.off('shuttle-updated', shuttleHandler);
+      wsService.off('registration-updated', registrationHandler);
     };
-  }, [handleGlobalUpdate, onShuttleRegistrationChange, onCompanyChange, onShuttleChange, onScheduleChange]);
+  }, []); // Empty dependency array - set up once on mount
 
   const triggerGlobalRefresh = useCallback(() => {
     console.log('🔄 Manual global refresh triggered');

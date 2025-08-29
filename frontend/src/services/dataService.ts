@@ -312,7 +312,32 @@ export const dataService = {
   },
 
   async createRegistration(registration: Partial<ShuttleRegistration>): Promise<ShuttleRegistration> {
-    return this.registrations.create(registration);
+    // First, find the schedule_id based on time_slot, route_type, direction
+    if (!registration.schedule_id && registration.time_slot && registration.route_type && registration.direction) {
+      const schedules = await this.getSchedules();
+      const matchingSchedule = schedules.find(s => 
+        s.departure_time === registration.time_slot + ':00' && 
+        s.route_type === registration.route_type && 
+        s.direction === registration.direction
+      );
+      
+      if (!matchingSchedule) {
+        throw new Error('Schedule not found for the specified time and route');
+      }
+      
+      registration.schedule_id = matchingSchedule.id;
+    }
+
+    // Map frontend fields to backend fields
+    const backendRegistration = {
+      schedule_id: registration.schedule_id,
+      passenger_name: registration.user_name || registration.passenger_name,
+      passenger_phone: registration.phone_number || registration.passenger_phone || '0000000000', // Default phone if none provided
+      passenger_email: registration.passenger_email,
+      registration_date: registration.registration_date
+    };
+
+    return this.registrations.create(backendRegistration);
   },
 
   async deleteRegistration(id: string): Promise<void> {

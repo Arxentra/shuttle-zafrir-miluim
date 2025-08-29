@@ -86,8 +86,12 @@ export function ScheduleTable({ schedules, onDelete, onUpdate, company, onCompan
     return editingCell?.id === scheduleId && editingCell?.field === field;
   };
 
-  const getTimeCategory = (timeSlot: string) => {
-    const time = timeSlot.split('-')[0] || timeSlot.split(':')[0];
+  const getTimeCategory = (timeSlot: string | null, departureTime?: string) => {
+    // Use departure_time if time_slot is null or empty
+    const timeToUse = timeSlot || departureTime;
+    if (!timeToUse) return 'בוקר'; // Default category for null times
+    
+    const time = timeToUse.split('-')[0] || timeToUse.split(':')[0];
     const hour = parseInt(time.split(':')[0]);
     
     if (hour >= 6 && hour < 15) return 'בוקר';
@@ -136,7 +140,7 @@ export function ScheduleTable({ schedules, onDelete, onUpdate, company, onCompan
     };
     
     schedules.forEach(schedule => {
-      const category = getTimeCategory(schedule.time_slot);
+      const category = getTimeCategory(schedule.time_slot, schedule.departure_time);
       groups[category].push(schedule);
     });
     

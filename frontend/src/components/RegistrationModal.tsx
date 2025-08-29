@@ -35,7 +35,7 @@ interface Registration {
   created_at: string;
 }
 
-export function RegistrationModal({
+function RegistrationModal({
   isOpen,
   onOpenChange,
   timeSlot,
@@ -287,3 +287,6 @@ export function RegistrationModal({
     </Dialog>
   );
 }
+
+export default RegistrationModal;
+export { RegistrationModal };
