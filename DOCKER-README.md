@@ -258,31 +258,6 @@ docker system prune -a
 docker system prune -a --volumes
 ```
 
-## Migration from Supabase
-
-To migrate from existing Supabase:
-
-1. Export data from Supabase:
-```sql
--- In Supabase SQL editor
-COPY companies TO '/tmp/companies.csv' CSV HEADER;
-COPY shuttles TO '/tmp/shuttles.csv' CSV HEADER;
-COPY shuttle_schedules TO '/tmp/schedules.csv' CSV HEADER;
-```
-
-2. Import to Docker PostgreSQL:
-```bash
-# Copy files to container
-docker cp companies.csv tzafrir-db:/tmp/
-docker cp shuttles.csv tzafrir-db:/tmp/
-docker cp schedules.csv tzafrir-db:/tmp/
-
-# Import data
-docker-compose exec postgres psql -U postgres -d tzafrir_shuttle -c "\COPY companies FROM '/tmp/companies.csv' CSV HEADER"
-docker-compose exec postgres psql -U postgres -d tzafrir_shuttle -c "\COPY shuttles FROM '/tmp/shuttles.csv' CSV HEADER"
-docker-compose exec postgres psql -U postgres -d tzafrir_shuttle -c "\COPY shuttle_schedules FROM '/tmp/schedules.csv' CSV HEADER"
-```
-
 ## Support
 
 For issues or questions:

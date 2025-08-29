@@ -48,22 +48,28 @@ export function useShuttleData() {
       
       console.log('🔄 Fetching fresh shuttle data...');
 
-      // Fetch shuttles with companies
-      const shuttlesData = await dataService.getShuttles();
-      const activeShuttles = (shuttlesData || []).filter(shuttle => shuttle.is_active);
+      // Fetch shuttles, companies, and schedules
+      const [shuttlesData, companiesData, schedulesData] = await Promise.all([
+        dataService.getShuttles(),
+        dataService.getCompanies(),
+        dataService.getSchedules()
+      ]);
 
-      // Fetch all schedules
-      const schedulesData = await dataService.getSchedules();
+      const activeShuttles = (shuttlesData || []).filter(shuttle => shuttle.is_active);
+      
+      // Create a map of companies for quick lookup
+      const companiesMap = new Map((companiesData || []).map(company => [company.id, company]));
 
       // Combine data
-      const combinedData: ShuttleData[] = (activeShuttles || []).map(shuttle => ({
+      const combinedData: ShuttleData[] = activeShuttles.map(shuttle => ({
         shuttle,
-        company: shuttle.company || { id: '', name: '', shuttle_number: 0, is_active: false },
+        company: companiesMap.get(shuttle.company_id) || { id: '', name: 'Unknown', shuttle_number: 0, is_active: false },
         schedules: (schedulesData || []).filter(schedule => schedule.shuttle_id === shuttle.id)
       }));
 
       console.log('✅ Successfully fetched shuttle data:', {
-        shuttles: activeShuttles?.length || 0,
+        shuttles: activeShuttles.length,
+        companies: companiesData?.length || 0,
         schedules: schedulesData?.length || 0,
         combined: combinedData.length
       });
