@@ -20,9 +20,7 @@ const wss = new WebSocketServer({ server: httpServer });
 app.use(helmet());
 app.use(cors({
   origin: [
-    process.env.CORS_ORIGIN || 'http://localhost:5173',
-    'https://dd71f7be0dd4.ngrok-free.app',
-    'https://04c9687c2f38.ngrok-free.app'
+    process.env.CORS_ORIGIN || 'http://localhost:5173'
   ],
   credentials: true
 }));

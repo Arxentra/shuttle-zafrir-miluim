@@ -16,10 +16,6 @@ class ApiClient {
       ...(token && { 'Authorization': `Bearer ${token}` })
     };
 
-    // Add ngrok bypass header if using ngrok
-    if (this.baseURL.includes('ngrok-free.app')) {
-      headers['ngrok-skip-browser-warning'] = 'true';
-    }
 
     return headers;
   }
@@ -73,10 +69,6 @@ class ApiClient {
       // Don't set Content-Type for FormData - let browser set it with boundary
     };
 
-    // Add ngrok bypass header if using ngrok
-    if (this.baseURL.includes('ngrok-free.app')) {
-      headers['ngrok-skip-browser-warning'] = 'true';
-    }
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'POST',
