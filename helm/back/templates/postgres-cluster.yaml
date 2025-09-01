@@ -1,0 +1,146 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: postgres-operator.crunchydata.com/v1beta1
+kind: PostgresCluster
+metadata:
+  name: {{ include "back.fullname" . }}-postgres
+  labels:
+    {{- include "back.labels" . | nindent 4 }}
+spec:
+  {{ if .Values.postgresql.image }}
+  image: {{ .Values.postgresql.image.repository }}:{{ .Values.postgresql.image.tag }}
+  {{ end }}
+  
+  # PostgreSQL Version
+  postgresVersion: {{ .Values.postgresql.version }}
+  
+  # Instance Configuration
+  instances:
+    - name: instance1
+      replicas: {{ .Values.postgresql.instances.replicas }}
+      
+      # Resource Configuration
+      resources:
+        requests:
+          memory: {{ .Values.postgresql.instances.resources.requests.memory }}
+          cpu: {{ .Values.postgresql.instances.resources.requests.cpu }}
+        limits:
+          memory: {{ .Values.postgresql.instances.resources.limits.memory }}
+          cpu: {{ .Values.postgresql.instances.resources.limits.cpu }}
+      
+      # Storage Configuration
+      dataVolumeClaimSpec:
+        accessModes:
+        - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: {{ .Values.postgresql.instances.storage.size }}
+        {{- if .Values.postgresql.instances.storage.storageClass }}
+        storageClassName: {{ .Values.postgresql.instances.storage.storageClass }}
+        {{- end }}
+      
+      # Affinity and Node Selection
+      {{- if .Values.postgresql.instances.affinity }}
+      affinity:
+        {{- toYaml .Values.postgresql.instances.affinity | nindent 8 }}
+      {{- end }}
+      
+      {{- if .Values.postgresql.instances.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.postgresql.instances.nodeSelector | nindent 8 }}
+      {{- end }}
+      
+      {{- if .Values.postgresql.instances.tolerations }}
+      tolerations:
+        {{- toYaml .Values.postgresql.instances.tolerations | nindent 8 }}
+      {{- end }}
+
+  # Backup Configuration
+  {{- if .Values.postgresql.backup.enabled }}
+  backups:
+    pgbackrest:
+      image: {{ .Values.postgresql.backup.image.repository }}:{{ .Values.postgresql.backup.image.tag }}
+      
+      # Backup Repository Configuration
+      repos:
+      - name: repo1
+        {{- if .Values.postgresql.backup.s3.enabled }}
+        s3:
+          bucket: {{ .Values.postgresql.backup.s3.bucket }}
+          endpoint: {{ .Values.postgresql.backup.s3.endpoint }}
+          region: {{ .Values.postgresql.backup.s3.region }}
+        {{- else }}
+        volume:
+          volumeClaimSpec:
+            accessModes:
+            - "ReadWriteOnce"
+            resources:
+              requests:
+                storage: {{ .Values.postgresql.backup.storage.size }}
+            {{- if .Values.postgresql.backup.storage.storageClass }}
+            storageClassName: {{ .Values.postgresql.backup.storage.storageClass }}
+            {{- end }}
+        {{- end }}
+      
+      # Backup Schedule Configuration
+      {{- if .Values.postgresql.backup.schedule }}
+      configuration:
+      - secret:
+          name: {{ include "back.fullname" . }}-postgres-backup-config
+      {{- end }}
+  {{- end }}
+
+  # Monitoring Configuration
+  {{- if .Values.postgresql.monitoring.enabled }}
+  monitoring:
+    pgmonitor:
+      exporter:
+        {{ if .Values.postgresql.monitoring.exporter.image}}
+        image: {{ .Values.postgresql.monitoring.exporter.image.repository }}:{{ .Values.postgresql.monitoring.exporter.image.tag }}
+        {{ end }}
+        resources:
+          requests:
+            memory: {{ .Values.postgresql.monitoring.exporter.resources.requests.memory }}
+            cpu: {{ .Values.postgresql.monitoring.exporter.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.postgresql.monitoring.exporter.resources.limits.memory }}
+            cpu: {{ .Values.postgresql.monitoring.exporter.resources.limits.cpu }}
+  {{- end }}
+
+  # Database and User Configuration
+  users:
+    - name: {{ .Values.config.database.user }}
+      databases:
+        - {{ .Values.config.database.name }}
+      options: "SUPERUSER"
+
+  # # Custom PostgreSQL Configuration
+  # {{- if .Values.postgresql.customConfig }}
+  # customTLSSecret:
+  #   name: {{ include "back.fullname" . }}-postgres-tls
+  # customReplicationTLSSecret:
+  #   name: {{ include "back.fullname" . }}-postgres-replication-tls
+
+  # PostgreSQL Configuration Parameters
+  patroni:
+    dynamicConfiguration:
+      postgresql:
+        parameters:
+          {{- toYaml .Values.postgresql.customConfig | nindent 10 }}
+  {{- end }}
+
+---
+# Database Connection Secret (automatically created by PGO)
+# This will be referenced by the backend deployment
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "back.fullname" . }}-database-connection
+  labels:
+    {{- include "back.labels" . | nindent 4 }}
+type: Opaque
+data:
+  # This secret will be populated by PGO operator with actual connection details
+  # We create this placeholder to ensure the secret exists for the deployment
+  DB_CONNECTION_STRING: {{ printf "postgresql://%s@%s-postgres-primary.%s.svc.cluster.local:5432/%s" .Values.config.database.user (include "back.fullname" .) .Release.Namespace .Values.config.database.name | b64enc | quote }}
+
+{{- end }}
