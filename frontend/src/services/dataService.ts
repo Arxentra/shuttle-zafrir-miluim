@@ -87,7 +87,7 @@ export const dataService = {
   // Companies
   companies: {
     async getAll(): Promise<Company[]> {
-      return api.get('/api/companies');
+      return api.getPublic('/api/companies/public');
     },
 
     async getById(id: string): Promise<Company> {
@@ -110,7 +110,7 @@ export const dataService = {
   // Shuttles
   shuttles: {
     async getAll(): Promise<Shuttle[]> {
-      return api.get('/api/shuttles');
+      return api.getPublic('/api/shuttles/public');
     },
 
     async getById(id: string): Promise<Shuttle> {
@@ -137,7 +137,7 @@ export const dataService = {
   // Shuttle Schedules
   schedules: {
     async getAll(): Promise<ShuttleSchedule[]> {
-      return api.get('/api/schedules');
+      return api.getPublic('/api/schedules/public');
     },
 
     async getById(id: string): Promise<ShuttleSchedule> {
@@ -166,14 +166,14 @@ export const dataService = {
 
     async getOrganizedForDisplay(date?: string): Promise<OrganizedSchedules> {
       const queryParams = date ? `?date=${date}` : '';
-      return api.get(`/api/schedules/organized/display${queryParams}`);
+      return api.getPublic(`/api/schedules/organized/display/public${queryParams}`);
     }
   },
 
   // Registrations
   registrations: {
     async getAll(): Promise<ShuttleRegistration[]> {
-      return api.get('/api/registrations');
+      return api.getPublic('/api/registrations/public');
     },
 
     async getById(id: string): Promise<ShuttleRegistration> {
@@ -196,13 +196,15 @@ export const dataService = {
       return api.delete(`/api/registrations/${id}`);
     },
 
-    async getCount(params: { date?: string; time_slot?: string; route_type?: string }): Promise<{ count: number }> {
+    async getCount(params: { date?: string; time_slot?: string; route_type?: string; direction?: string; registration_date?: string }): Promise<{ count: number }> {
       const queryParams = new URLSearchParams();
       if (params.date) queryParams.append('date', params.date);
       if (params.time_slot) queryParams.append('time_slot', params.time_slot);
       if (params.route_type) queryParams.append('route_type', params.route_type);
+      if (params.direction) queryParams.append('direction', params.direction);
+      if (params.registration_date) queryParams.append('registration_date', params.registration_date);
       
-      return api.get(`/api/registrations/count?${queryParams}`);
+      return api.getPublic(`/api/registrations/count/public?${queryParams}`);
     }
   },
 
@@ -306,7 +308,7 @@ export const dataService = {
       if (params.direction) queryParams.append('direction', params.direction);
       if (params.registration_date) queryParams.append('registration_date', params.registration_date);
       
-      return api.get(`/api/registrations?${queryParams}`);
+      return api.getPublic(`/api/registrations/public?${queryParams}`);
     }
     return this.registrations.getAll();
   },

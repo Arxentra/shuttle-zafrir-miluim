@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { dataService } from '@/services/dataService';
-import { wsService } from '@/services/websocketService';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,20 +51,7 @@ function RegistrationModal({
     if (isOpen) {
       loadRegistrations();
       
-      // Set up WebSocket listeners for real-time updates
-      wsService.on('registration-updated', () => {
-        console.log('📋 Registration Modal real-time update:', { 
-          timeSlot, 
-          routeType, 
-          direction, 
-          timestamp: new Date().toLocaleTimeString()
-        });
-        
-        // Immediate reload for real-time experience
-        setTimeout(() => {
-          loadRegistrations();
-        }, 100);
-      });
+      // Note: Real-time updates disabled (WebSocket removed)
 
       // Global refresh listener
       const handleGlobalRefresh = () => {
@@ -76,7 +62,6 @@ function RegistrationModal({
       window.addEventListener('global-data-refresh', handleGlobalRefresh);
 
       return () => {
-        wsService.off('registration-updated');
         window.removeEventListener('global-data-refresh', handleGlobalRefresh);
       };
     }

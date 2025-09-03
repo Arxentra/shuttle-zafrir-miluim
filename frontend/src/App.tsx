@@ -7,7 +7,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { wsService } from "@/services/websocketService";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminAuth from "./pages/AdminAuth";
@@ -68,16 +67,7 @@ function AdminAuthRoute({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  // Initialize WebSocket connection
-  React.useEffect(() => {
-    wsService.connect().catch(error => {
-      console.error('Failed to connect to WebSocket:', error);
-    });
-
-    return () => {
-      wsService.disconnect();
-    };
-  }, []);
+  // Note: WebSocket connection removed
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -86,7 +76,7 @@ const App = () => {
           <AuthProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route 

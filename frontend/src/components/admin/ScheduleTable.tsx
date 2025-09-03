@@ -140,7 +140,7 @@ export function ScheduleTable({ schedules, onDelete, onUpdate, company, onCompan
     };
     
     schedules.forEach(schedule => {
-      const category = getTimeCategory(schedule.time_slot, schedule.departure_time);
+      const category = getTimeCategory(schedule.time_slot, schedule.time_slot);
       groups[category].push(schedule);
     });
     

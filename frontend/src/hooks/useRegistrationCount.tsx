@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { dataService } from '@/services/dataService';
-import { wsService } from '@/services/websocketService';
 
 export function useRegistrationCount(
   timeSlot: string,
@@ -36,17 +35,7 @@ export function useRegistrationCount(
 
     fetchCount();
 
-    // Enhanced real-time subscription with faster updates
-    wsService.on('registration-updated', () => {
-      console.log('🚀 Real-time registration change detected:', { 
-        timeSlot, 
-        routeType, 
-        direction, 
-        timestamp: new Date().toLocaleTimeString()
-      });
-      // Force immediate refresh for real-time updates
-      setTimeout(fetchCount, 100);
-    });
+    // Note: Real-time updates disabled (WebSocket removed)
 
     // Global refresh listener for cross-component updates
     const handleGlobalRefresh = () => {
@@ -57,7 +46,6 @@ export function useRegistrationCount(
     window.addEventListener('global-data-refresh', handleGlobalRefresh);
 
     return () => {
-      wsService.off('registration-updated');
       window.removeEventListener('global-data-refresh', handleGlobalRefresh);
     };
   }, [timeSlot, routeType, direction]);

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { dataService } from '@/services/dataService';
-import { wsService } from '@/services/websocketService';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -83,7 +82,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     loadData();
-    // WebSocket listeners are already set up in useGlobalSync hook
+    // Note: WebSocket functionality removed
     // No need to duplicate them here
   }, []);
 

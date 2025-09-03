@@ -1,5 +1,5 @@
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 // API Client with automatic token handling
 class ApiClient {
@@ -32,6 +32,16 @@ class ApiClient {
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'GET',
       headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async getPublic(endpoint: string) {
+    const response = await fetch(`${this.baseURL}${endpoint}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
     return this.handleResponse(response);
   }

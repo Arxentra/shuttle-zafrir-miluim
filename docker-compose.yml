@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -23,7 +21,21 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend API
+  # Jaeger for OpenTelemetry tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: tzafrir-jaeger
+    restart: always
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # HTTP collector
+      - "6831:6831/udp"  # UDP agent
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - tzafrir-network
+
+  # Backend API (FastAPI)
   backend:
     build:
       context: ./backend
@@ -36,18 +48,29 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://postgres:postgres123@postgres:5432/tzafrir_shuttle
       JWT_SECRET: your-jwt-secret-here-change-in-production
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: "*"
+      # OpenTelemetry Configuration
+      OTEL_SERVICE_NAME: tzafrir-shuttle-api
+      OTEL_SERVICE_VERSION: 1.0.0
+      ENABLE_JAEGER: true
+      ENABLE_OTLP: false
+      ENABLE_CONSOLE_EXPORT: true
+      JAEGER_ENDPOINT: http://jaeger:14268/api/traces
+      # Logging Configuration
+      LOG_LEVEL: INFO
+      LOG_FORMAT: json
     ports:
       - "3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     volumes:
       - ./backend:/app
-      - /app/node_modules
+      - ./backend/requirements.txt:/app/requirements.txt
     networks:
       - tzafrir-network
-    command: npm run dev
 
   # Frontend React App
   frontend:
@@ -56,14 +79,13 @@ services:
       dockerfile: Dockerfile
       target: development
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001}
-        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:3001}
+        REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:3001}
     container_name: tzafrir-frontend
     restart: always
     environment:
       - NODE_ENV=development
     ports:
-      - "5173:8080"
+      - "8080:8080"
     depends_on:
       - backend
     volumes:
@@ -71,7 +93,7 @@ services:
       - /app/node_modules
     networks:
       - tzafrir-network
-    command: npm run dev
+    command: npm run start
 
 networks:
   tzafrir-network:

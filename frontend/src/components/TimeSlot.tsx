@@ -4,7 +4,6 @@ import { useJerusalemTime } from '@/hooks/useJerusalemTime';
 import { useRegistrationCount } from '@/hooks/useRegistrationCount';
 import RegistrationModal from './RegistrationModal';
 import { Users } from 'lucide-react';
-import { wsService } from '@/services/websocketService';
 
 interface TimeSlotProps {
   time: string;
@@ -32,22 +31,7 @@ export function TimeSlot({
 
   // Enhanced real-time updates with instant synchronization
   useEffect(() => {
-    // Set up WebSocket listeners for real-time updates
-    wsService.on('registration-updated', () => {
-      console.log('🎯 TimeSlot real-time update:', { 
-        time, 
-        routeType, 
-        direction, 
-        timestamp: new Date().toLocaleTimeString()
-      });
-      // Immediate UI update for real-time experience
-      setForceUpdate(prev => prev + 1);
-      
-      // Trigger global refresh after short delay to ensure all components sync
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('global-data-refresh'));
-      }, 200);
-    });
+    // Note: Real-time updates disabled (WebSocket removed)
 
     // Listen for global refresh events
     const handleGlobalRefresh = () => {
@@ -58,7 +42,6 @@ export function TimeSlot({
     window.addEventListener('global-data-refresh', handleGlobalRefresh);
 
     return () => {
-      wsService.off('registration-updated');
       window.removeEventListener('global-data-refresh', handleGlobalRefresh);
     };
   }, [time, routeType, direction]);
