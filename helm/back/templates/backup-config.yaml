@@ -1,0 +1,81 @@
+{{- if and .Values.postgresql.enabled .Values.postgresql.backup.enabled .Values.postgresql.backup.schedule }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "back.fullname" . }}-postgres-backup-config
+  labels:
+    {{- include "back.labels" . | nindent 4 }}
+type: Opaque
+stringData:
+  pgbackrest.conf: |
+    [global]
+    repo1-retention-full=7
+    repo1-retention-diff=3
+    
+    [{{ include "back.fullname" . }}-postgres]
+    pg1-path=/pgdata/{{ include "back.fullname" . }}-postgres
+    
+    # Backup schedule configuration
+    backup-standby=y
+    
+    # Compression and encryption
+    compress-type=lz4
+    compress-level=3
+    
+    {{- if .Values.postgresql.backup.s3.enabled }}
+    # S3 Configuration
+    repo1-type=s3
+    repo1-s3-bucket={{ .Values.postgresql.backup.s3.bucket }}
+    repo1-s3-endpoint={{ .Values.postgresql.backup.s3.endpoint }}
+    repo1-s3-region={{ .Values.postgresql.backup.s3.region }}
+    repo1-s3-key-type=shared
+    {{- end }}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "back.fullname" . }}-postgres-backup
+  labels:
+    {{- include "back.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.postgresql.backup.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: {{ include "back.serviceAccountName" . }}
+          containers:
+          - name: backup
+            image: {{ .Values.postgresql.backup.image.repository }}:{{ .Values.postgresql.backup.image.tag }}
+            command:
+            - /bin/bash
+            - -c
+            - |
+              pgbackrest --config=/etc/pgbackrest/pgbackrest.conf \
+                --stanza={{ include "back.fullname" . }}-postgres backup --type=incr
+            volumeMounts:
+            - name: backup-config
+              mountPath: /etc/pgbackrest
+              readOnly: true
+            env:
+            - name: PGBACKREST_LOG_LEVEL_CONSOLE
+              value: "info"
+            {{- if .Values.postgresql.backup.s3.enabled }}
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "back.fullname" . }}-s3-credentials
+                  key: access-key
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "back.fullname" . }}-s3-credentials
+                  key: secret-key
+            {{- end }}
+          volumes:
+          - name: backup-config
+            secret:
+              secretName: {{ include "back.fullname" . }}-postgres-backup-config
+          restartPolicy: OnFailure
+{{- end }}

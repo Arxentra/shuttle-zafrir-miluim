@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "back.fullname" . }}-config
+  labels:
+    {{- include "back.labels" . | nindent 4 }}
+data:
+  # Server Configuration
+  PORT: {{ .Values.config.server.port | quote }}
+  NODE_ENV: {{ .Values.config.server.nodeEnv | quote }}
+  
+  
+  # Database Optimization
+  OPTIMIZE_DB: {{ .Values.config.database.optimize | quote }}
+  
+  # Frontend Configuration (if backend serves frontend assets)
+  FRONTEND_PORT: {{ .Values.config.frontend.port | quote }}
+  SKIP_PREFLIGHT_CHECK: {{ .Values.config.frontend.skipPreflightCheck | quote }}
+  
+  # CORS Configuration
+  CORS_ORIGIN: {{ .Values.config.cors.allowedOrigins | quote }}
