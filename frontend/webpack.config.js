@@ -75,7 +75,7 @@ module.exports = (env, argv) => {
         inject: true,
       }),
       new webpack.DefinePlugin({
-        'process.env.REACT_APP_API_URL': JSON.stringify(process.env.REACT_APP_API_URL || 'http://localhost:3001'),
+        'process.env.REACT_APP_API_URL': JSON.stringify(process.env.REACT_APP_API_URL || (isDevelopment ? 'http://localhost:8080' : '')),
         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
       }),
     ],

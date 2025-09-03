@@ -89,8 +89,25 @@ CORS_ORIGIN=http://localhost:5173
 
 ### Frontend (.env)
 ```bash
-REACT_APP_API_URL=http://localhost:3001
-REACT_APP_WS_URL=ws://localhost:3001
+REACT_APP_API_URL=http://localhost:8080
+REACT_APP_WS_URL=ws://localhost:8080
+```
+
+**Important for Production/DevOps:**
+- **Local Docker**: Uses `localhost:8080` - nginx forwards `/api/*` to backend
+- **Production**: Set `REACT_APP_API_URL=""` (empty) to use relative URLs on the same domain
+- **Custom Domain**: Set `REACT_APP_API_URL=https://your-api-domain.com`
+
+**Production Build Examples:**
+```bash
+# Same domain (recommended)
+docker build --build-arg REACT_APP_API_URL="" ./frontend
+
+# Different API domain  
+docker build --build-arg REACT_APP_API_URL=https://api.yourdomain.com ./frontend
+
+# Local development
+docker build --build-arg REACT_APP_API_URL=http://localhost:8080 ./frontend
 ```
 
 ## 📊 API Endpoints

@@ -1,5 +1,7 @@
 // API Configuration
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// In production, use empty string for relative URLs (same domain)
+// In development, use full localhost URL
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 // API Client with automatic token handling
 class ApiClient {
