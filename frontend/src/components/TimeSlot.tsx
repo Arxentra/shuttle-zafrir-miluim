@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useJerusalemTime } from '@/hooks/useJerusalemTime';
 import { useRegistrationCount } from '@/hooks/useRegistrationCount';
+import { useAuth } from '@/hooks/useAuth';
 import RegistrationModal from './RegistrationModal';
 import { Users } from 'lucide-react';
 
@@ -21,6 +22,7 @@ export function TimeSlot({
   children 
 }: TimeSlotProps) {
   const { isTimePassed, canRegister } = useJerusalemTime();
+  const { isAdmin } = useAuth();
   const { count, loading: countLoading } = useRegistrationCount(time, routeType, direction);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [forceUpdate, setForceUpdate] = useState(0);
@@ -74,14 +76,14 @@ export function TimeSlot({
     
     // Enhanced visibility for passed times - grey theme
     if (isPassed) {
-      if (count > 0) {
+      if (isAdmin && count > 0) {
         return `${baseStyles} cursor-pointer bg-gradient-to-br from-gray-400 to-gray-500 dark:from-gray-600 dark:to-gray-700 text-white dark:text-gray-200 border-red-500 hover:border-red-600 hover:from-gray-500 hover:to-gray-600 dark:hover:from-gray-500 dark:hover:to-gray-600 ring-2 ring-red-300/60 dark:ring-red-500/40 opacity-80`;
       }
       return `${baseStyles} cursor-pointer bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-700 dark:to-gray-800 text-gray-700 dark:text-gray-300 border-gray-400 dark:border-gray-600 hover:from-gray-400 hover:to-gray-500 dark:hover:from-gray-600 dark:hover:to-gray-700 opacity-65`;
     }
     
-    // Enhanced visibility for future time slots with registrations - green theme with red border
-    if (count > 0) {
+    // Enhanced visibility for future time slots with registrations - green theme with red border (admin only)
+    if (isAdmin && count > 0) {
       return `${baseStyles} cursor-pointer bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800/50 dark:to-green-900/50 hover:from-green-200 hover:to-green-300 dark:hover:from-green-700/60 dark:hover:to-green-800/60 text-green-900 dark:text-green-100 border-red-500 hover:border-red-600 ring-2 ring-red-300/70 dark:ring-red-500/50 shadow-green-200/50 dark:shadow-green-800/30`;
     }
     
@@ -94,9 +96,9 @@ export function TimeSlot({
       return "הפסקת צהריים - אין אפשרות להירשם";
     }
     if (isPassed) {
-      return `שעה שעברה - עדיין ניתן להירשם${count > 0 ? ` (${count} נרשמו)` : ''}`;
+      return `שעה שעברה - עדיין ניתן להירשם${isAdmin && count > 0 ? ` (${count} נרשמו)` : ''}`;
     }
-    return `לחץ להירשם לנסיעה - זמין לכל השעות${count > 0 ? ` (${count} נרשמו)` : ''}`;
+    return `לחץ להירשם לנסיעה - זמין לכל השעות${isAdmin && count > 0 ? ` (${count} נרשמו)` : ''}`;
   };
 
   return (
@@ -108,7 +110,7 @@ export function TimeSlot({
       >
         <div className="flex flex-col items-center gap-1 sm:gap-2">
           <span className="text-sm sm:text-base md:text-lg lg:text-xl font-black drop-shadow-sm leading-tight">{children || time}</span>
-          {!countLoading && count > 0 && (
+          {isAdmin && !countLoading && count > 0 && (
             <div className="flex items-center gap-1 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full bg-white/90 dark:bg-black/40 text-emerald-800 dark:text-emerald-200 border border-emerald-500 dark:border-emerald-400 shadow-md backdrop-blur-sm">
               <Users className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>{count}</span>

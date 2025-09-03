@@ -61,10 +61,13 @@ npm run db:reset   # Reset database (WARNING: deletes data)
 - **Features**: CSV import/export, WebSocket support, bulk operations
 
 ### Frontend (React + TypeScript)
-- **Framework**: React with Vite
-- **UI Library**: Tailwind CSS + shadcn/ui
-- **State Management**: React hooks + Context
-- **Build Tool**: Vite with hot reload
+- **Framework**: React 18.3.1 with TypeScript
+- **UI Library**: Tailwind CSS + shadcn/ui components
+- **State Management**: React hooks + Context API
+- **Build Tool**: Webpack 5 with Babel
+- **Icons**: Lucide React
+- **Routing**: React Router DOM
+- **Form Handling**: React Hook Form with Zod validation
 
 ### Infrastructure
 - **Containerization**: Docker + Docker Compose
@@ -86,8 +89,8 @@ CORS_ORIGIN=http://localhost:5173
 
 ### Frontend (.env)
 ```bash
-VITE_API_URL=http://localhost:3001
-VITE_WS_URL=ws://localhost:3001
+REACT_APP_API_URL=http://localhost:3001
+REACT_APP_WS_URL=ws://localhost:3001
 ```
 
 ## 📊 API Endpoints
@@ -168,7 +171,11 @@ python -m uvicorn app.main:app --reload
 ```bash
 cd frontend
 npm install
-npm run dev
+npm start          # Start webpack dev server
+# or
+npm run dev        # Same as npm start
+npm run build      # Production build
+npm run lint       # Run ESLint
 ```
 
 ### Database Management

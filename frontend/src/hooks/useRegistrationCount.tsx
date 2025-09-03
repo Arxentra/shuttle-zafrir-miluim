@@ -24,7 +24,6 @@ export function useRegistrationCount(
         
         const registrationCount = registrations ? registrations.length : 0;
         setCount(registrationCount);
-        console.log(`✅ Real-time update: ${timeSlot} ${routeType} ${direction} - Count: ${registrationCount}`);
       } catch (error) {
         console.error('Error fetching registration count:', error);
         setCount(0);
@@ -39,7 +38,6 @@ export function useRegistrationCount(
 
     // Global refresh listener for cross-component updates
     const handleGlobalRefresh = () => {
-      console.log('🌐 Global refresh triggered for registration count');
       fetchCount();
     };
 
