@@ -1,5 +1,11 @@
 import { api } from './api';
 
+// Map frontend route types to database route types
+const ROUTE_TYPE_MAPPING: { [key: string]: string } = {
+  'sabidor': 'savidor_to_tzafrir',
+  'kiryat-arie': 'kiryat_aryeh_to_tzafrir'
+};
+
 // Types for our data entities
 export interface Company {
   id: string;
@@ -301,10 +307,13 @@ export const dataService = {
 
   async getRegistrations(params?: { time_slot?: string; route_type?: string; direction?: string; registration_date?: string }): Promise<ShuttleRegistration[]> {
     if (params) {
-      // Build query string
+      // Build query string with mapped route type
       const queryParams = new URLSearchParams();
       if (params.time_slot) queryParams.append('time_slot', params.time_slot);
-      if (params.route_type) queryParams.append('route_type', params.route_type);
+      if (params.route_type) {
+        const dbRouteType = ROUTE_TYPE_MAPPING[params.route_type] || params.route_type;
+        queryParams.append('route_type', dbRouteType);
+      }
       if (params.direction) queryParams.append('direction', params.direction);
       if (params.registration_date) queryParams.append('registration_date', params.registration_date);
       
@@ -317,13 +326,22 @@ export const dataService = {
     // First, find the schedule_id based on time_slot, route_type, direction
     if (!registration.schedule_id && registration.time_slot && registration.route_type && registration.direction) {
       const schedules = await this.getSchedules();
+      
+      const dbRouteType = ROUTE_TYPE_MAPPING[registration.route_type] || registration.route_type;
+      
       const matchingSchedule = schedules.find(s => 
         s.departure_time === registration.time_slot + ':00' && 
-        s.route_type === registration.route_type && 
+        s.route_type === dbRouteType && 
         s.direction === registration.direction
       );
       
       if (!matchingSchedule) {
+        console.error('No matching schedule found for:', {
+          time_slot: registration.time_slot + ':00',
+          route_type: dbRouteType,
+          direction: registration.direction,
+          availableSchedules: schedules.length
+        });
         throw new Error('Schedule not found for the specified time and route');
       }
       
