@@ -56,7 +56,7 @@ spec:
                 secretKeyRef:
                   {{- if .Values.postgresql.enabled }}
                   name: {{ include "back.fullname" . }}-postgres-pguser-{{ .Values.config.database.user }}
-                  key: jdbc-uri
+                  key: uri
                   {{- end }}
           {{- with .Values.livenessProbe }}
           livenessProbe:

@@ -5,4 +5,4 @@ metadata:
   labels:
     {{- include "front.labels" . | nindent 4 }}
 data:
-  REACT_APP_API_URL: {{ .Values.config.apiUrl | quote }}
+  test-REACT_APP_API_URL: {{ .Values.config.apiUrl | quote }}

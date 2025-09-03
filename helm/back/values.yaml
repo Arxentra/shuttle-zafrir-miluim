@@ -9,7 +9,7 @@ replicaCount: 1
 config:
   # Server Configuration
   server:
-    port: 5000
+    port: 3001
     nodeEnv: production
   
   # Database Configuration
@@ -58,7 +58,7 @@ image:
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "backend.20250901.1"
+  tag: "backend.20250903.3"
 
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets:
@@ -102,7 +102,7 @@ service:
   # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
   type: ClusterIP
   # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 5000  # Backend API port
+  port: 3001  # Backend API port
 
 # This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
 ingress:

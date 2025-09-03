@@ -110,8 +110,7 @@ async def get_registration(
     
     return registration
 
-@router.post("/", response_model=RegistrationSchema)
-async def create_registration(
+async def create_registration_impl(
     registration_data: RegistrationCreate,
     db: AsyncSession = Depends(get_database_session),
     current_user: AdminUser = Depends(get_current_active_user)
@@ -147,6 +146,23 @@ async def create_registration(
     await db.refresh(new_registration)
     
     return new_registration
+
+# Route handlers for both with and without trailing slash
+@router.post("/", response_model=RegistrationSchema)
+async def create_registration_with_slash(
+    registration_data: RegistrationCreate,
+    db: AsyncSession = Depends(get_database_session),
+    current_user: AdminUser = Depends(get_current_active_user)
+):
+    return await create_registration_impl(registration_data, db, current_user)
+
+@router.post("", response_model=RegistrationSchema)
+async def create_registration_without_slash(
+    registration_data: RegistrationCreate,
+    db: AsyncSession = Depends(get_database_session),
+    current_user: AdminUser = Depends(get_current_active_user)
+):
+    return await create_registration_impl(registration_data, db, current_user)
 
 @router.put("/{registration_id}", response_model=RegistrationSchema)
 async def update_registration(
