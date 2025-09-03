@@ -77,23 +77,19 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      target: development
+      target: production
       args:
         REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:3001}
     container_name: tzafrir-frontend
     restart: always
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
     ports:
-      - "8080:8080"
+      - "8080:80"
     depends_on:
       - backend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     networks:
       - tzafrir-network
-    command: npm run start
 
 networks:
   tzafrir-network:

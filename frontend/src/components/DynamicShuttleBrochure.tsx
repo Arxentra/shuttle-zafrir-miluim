@@ -290,7 +290,7 @@ export default function DynamicShuttleBrochure() {
             {/* Enhanced Logo */}
             <div className="mb-4 p-2 bg-white/80 dark:bg-black/20 rounded-full shadow-2xl border-4 border-primary/20">
               <img 
-                src="/lovable-uploads/471a1e15-1e81-4018-a65e-2f62b4361f14.png" 
+                src="/shuttle-icon.svg" 
                 alt="לוגו שירות שאטלים צפריר" 
                 className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 object-contain drop-shadow-lg" 
               />
@@ -338,7 +338,7 @@ export default function DynamicShuttleBrochure() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                            <span className="cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center justify-center gap-3">
-                             <img src="/lovable-uploads/471a1e15-1e81-4018-a65e-2f62b4361f14.png" alt="Shuttle Icon" className="w-10 h-10" />
+                             <img src="/shuttle-icon.svg" alt="Shuttle Icon" className="w-10 h-10" />
                             שירות שאטלים סבידור ⟵ צפריר
                           </span>
                       </TooltipTrigger>
@@ -548,7 +548,7 @@ export default function DynamicShuttleBrochure() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                           <span className="cursor-pointer hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors flex items-center justify-center gap-3">
-                            <img src="/lovable-uploads/471a1e15-1e81-4018-a65e-2f62b4361f14.png" alt="Shuttle Icon" className="w-10 h-10" />
+                            <img src="/shuttle-icon.svg" alt="Shuttle Icon" className="w-10 h-10" />
                             שירות שאטלים קריית אריה ⟵ צפריר
                           </span>
                       </TooltipTrigger>
@@ -674,7 +674,7 @@ export default function DynamicShuttleBrochure() {
         <div className="mt-8 bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md border-2 border-emerald-300 dark:border-emerald-600 rounded-2xl p-4 sm:p-6 shadow-2xl">
           <div className="text-center mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center justify-center gap-2 sm:gap-3">
-              <img src="/lovable-uploads/471a1e15-1e81-4018-a65e-2f62b4361f14.png" alt="Company Icon" className="w-8 h-8 sm:w-10 sm:h-10" />
+              <img src="/shuttle-icon.svg" alt="Company Icon" className="w-8 h-8 sm:w-10 sm:h-10" />
               החברות המפעילות נסיעות בקו זה
             </h2>
           </div>
